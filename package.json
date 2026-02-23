@@ -1,0 +1,19 @@
+{
+  "name": "school-platform",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@11.0.0-dev.1005",
+  "type": "module",
+  "devDependencies": {
+    "turbo": "^2.8.10"
+  }
+}
