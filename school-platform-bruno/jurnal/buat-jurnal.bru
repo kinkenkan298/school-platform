@@ -1,0 +1,34 @@
+meta {
+  name: Buat Jurnal Baru
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/jurnal
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "tanggal": "2025-01-15",
+    "periodeId": "isi-dengan-periode-id",
+    "keterangan": "Penerimaan kas dari pelanggan",
+    "referensi": "INV-001",
+    "baris": [
+      {
+        "akunId": "isi-dengan-akun-id",
+        "debit": 5000000,
+        "kredit": 0,
+        "keterangan": "Kas masuk"
+      },
+      {
+        "akunId": "isi-dengan-akun-id",
+        "debit": 0,
+        "kredit": 5000000,
+        "keterangan": "Pendapatan jasa"
+      }
+    ]
+  }
+}

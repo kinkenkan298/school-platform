@@ -1,0 +1,16 @@
+meta {
+  name: Arus Kas
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/laporan/arus-kas
+  body: none
+  auth: none
+}
+
+params:query {
+  dari: 2025-01-01
+  sampai: 2025-12-31
+}

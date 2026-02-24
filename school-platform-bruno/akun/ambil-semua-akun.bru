@@ -1,0 +1,17 @@
+meta {
+  name: Ambil Semua Akun
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/akun?tipe=ASET&aktif=true
+  body: none
+  auth: none
+}
+
+params:query {
+  tipe: ASET
+  aktif: true
+  ~indukId: 
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Update Akun
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/akun/{{akunId}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "kode": "1101",
+    "nama": "Kas Besar",
+    "tipe": "ASET",
+    "saldoNormal": "DEBIT",
+    "indukId": null,
+    "adalahInduk": false,
+    "aktif": true
+  }
+}
