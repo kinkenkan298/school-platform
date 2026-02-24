@@ -1,0 +1,374 @@
+{
+  "id": "8db35c22-1693-4697-952e-29ad67cdb1a0",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.akun": {
+      "name": "akun",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "kode": {
+          "name": "kode",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nama": {
+          "name": "nama",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipe": {
+          "name": "tipe",
+          "type": "tipe_akun",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "saldo_normal": {
+          "name": "saldo_normal",
+          "type": "saldo_normal",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "induk_id": {
+          "name": "induk_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "adalah_induk": {
+          "name": "adalah_induk",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "aktif": {
+          "name": "aktif",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "dibuat_pada": {
+          "name": "dibuat_pada",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "diperbarui_pada": {
+          "name": "diperbarui_pada",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "akun_induk_id_akun_id_fk": {
+          "name": "akun_induk_id_akun_id_fk",
+          "tableFrom": "akun",
+          "tableTo": "akun",
+          "columnsFrom": [
+            "induk_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "akun_kode_unique": {
+          "name": "akun_kode_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "kode"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.jurnal": {
+      "name": "jurnal",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "nomor": {
+          "name": "nomor",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tanggal": {
+          "name": "tanggal",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "periode_id": {
+          "name": "periode_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "keterangan": {
+          "name": "keterangan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "referensi": {
+          "name": "referensi",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "status_jurnal",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'DRAF'"
+        },
+        "alasan_batal": {
+          "name": "alasan_batal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dibuat_pada": {
+          "name": "dibuat_pada",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "diperbarui_pada": {
+          "name": "diperbarui_pada",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "jurnal_periode_id_periode_fiskal_id_fk": {
+          "name": "jurnal_periode_id_periode_fiskal_id_fk",
+          "tableFrom": "jurnal",
+          "tableTo": "periode_fiskal",
+          "columnsFrom": [
+            "periode_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "jurnal_nomor_unique": {
+          "name": "jurnal_nomor_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "nomor"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.jurnal_baris": {
+      "name": "jurnal_baris",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "jurnal_id": {
+          "name": "jurnal_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "akun_id": {
+          "name": "akun_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "debit": {
+          "name": "debit",
+          "type": "numeric(20, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "kredit": {
+          "name": "kredit",
+          "type": "numeric(20, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "keterangan": {
+          "name": "keterangan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "jurnal_baris_jurnal_id_jurnal_id_fk": {
+          "name": "jurnal_baris_jurnal_id_jurnal_id_fk",
+          "tableFrom": "jurnal_baris",
+          "tableTo": "jurnal",
+          "columnsFrom": [
+            "jurnal_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "jurnal_baris_akun_id_akun_id_fk": {
+          "name": "jurnal_baris_akun_id_akun_id_fk",
+          "tableFrom": "jurnal_baris",
+          "tableTo": "akun",
+          "columnsFrom": [
+            "akun_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.periode_fiskal": {
+      "name": "periode_fiskal",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "bulan": {
+          "name": "bulan",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tahun": {
+          "name": "tahun",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sudah_ditutup": {
+          "name": "sudah_ditutup",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ditutup_pada": {
+          "name": "ditutup_pada",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.saldo_normal": {
+      "name": "saldo_normal",
+      "schema": "public",
+      "values": [
+        "DEBIT",
+        "KREDIT"
+      ]
+    },
+    "public.status_jurnal": {
+      "name": "status_jurnal",
+      "schema": "public",
+      "values": [
+        "DRAF",
+        "DIPOSTING",
+        "DIBATALKAN"
+      ]
+    },
+    "public.tipe_akun": {
+      "name": "tipe_akun",
+      "schema": "public",
+      "values": [
+        "ASET",
+        "LIABILITAS",
+        "EKUITAS",
+        "PENDAPATAN",
+        "BEBAN"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
