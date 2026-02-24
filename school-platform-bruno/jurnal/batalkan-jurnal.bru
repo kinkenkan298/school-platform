@@ -1,0 +1,17 @@
+meta {
+  name: Batalkan Jurnal
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/jurnal/{{jurnalId}}/batal
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "alasanBatal": "Transaksi salah input"
+  }
+}
