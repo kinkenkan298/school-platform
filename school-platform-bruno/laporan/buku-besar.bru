@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/laporan/buku-besar
+  url: {{baseUrl}}/laporan/buku-besar?akunId={{akunId}}&dari=2025-01-01&sampai=2025-01-31
   body: none
   auth: none
 }
@@ -13,5 +13,5 @@ get {
 params:query {
   akunId: {{akunId}}
   dari: 2025-01-01
-  sampai: 2025-12-31
+  sampai: 2025-01-31
 }
