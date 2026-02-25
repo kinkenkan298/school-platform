@@ -1,5 +1,5 @@
 # Dokumentasi Backend Finance MVP
-> Aplikasi Web Platform Sekolah  
+> Aplikasi SaaS Keuangan Sekolah  
 > Stack: TypeScript · Express · PostgreSQL · Drizzle ORM
 
 ---
@@ -22,59 +22,83 @@
 ### Struktur Folder
 
 ```
-src/
-├── db/
-│   └── db.ts                        # Koneksi database Drizzle
-├── drizzle/
-│   ├── index.ts
-│   ├── migrations/                  # File migrasi database
-│   └── schemas/
-│       └── finance.ts               # Schema tabel & enum
-├── modules/
-│   ├── akun/
-│   │   ├── akun.validation.ts       # Zod schema validasi
-│   │   ├── akun.service.ts          # Business logic
-│   │   ├── akun.controller.ts       # Handler request/response
-│   │   └── akun.routes.ts           # Definisi route
-│   ├── periode/
-│   │   ├── periode.validation.ts
-│   │   ├── periode.service.ts
-│   │   ├── periode.controller.ts
-│   │   └── periode.routes.ts
-│   ├── jurnal/
-│   │   ├── jurnal.validation.ts
-│   │   ├── jurnal.service.ts
-│   │   ├── jurnal.controller.ts
-│   │   └── jurnal.routes.ts
-│   └── laporan/
-│       ├── buku-besar.validation.ts
-│       ├── buku-besar.service.ts
-│       ├── buku-besar.controller.ts
-│       ├── laba-rugi.validation.ts
-│       ├── laba-rugi.service.ts
-│       ├── laba-rugi.controller.ts
-│       ├── neraca.validation.ts
-│       ├── neraca.service.ts
-│       ├── neraca.controller.ts
-│       ├── arus-kas.validation.ts
-│       ├── arus-kas.service.ts
-│       ├── arus-kas.controller.ts
-│       └── laporan.routes.ts
-├── routes/
-│   └── index.ts                     # Registrasi semua route
-└── shared/
-    ├── config/
-    │   └── env.ts
-    ├── errors/
-    │   └── api-error.ts             # Custom error class
-    ├── middleware/
-    │   ├── async-handler.ts         # Wrapper async controller
-    │   ├── error-handler.ts
-    │   └── not-found-handler.ts
-    └── utils/
-        ├── api-response.ts          # Format response standar
-        └── logger.ts
+apps/backend/
+├── src/
+│   ├── db/
+│   │   └── db.ts                          # Koneksi database Drizzle
+│   ├── drizzle/
+│   │   ├── index.ts
+│   │   ├── migrations/                    # File migrasi database
+│   │   └── schemas/
+│   │       └── finance.ts                 # Schema tabel & enum
+│   ├── modules/
+│   │   ├── akun/
+│   │   │   ├── akun.validation.ts         # Zod schema validasi
+│   │   │   ├── akun.service.ts            # Business logic
+│   │   │   ├── akun.controller.ts         # Handler request/response
+│   │   │   └── akun.routes.ts             # Definisi route
+│   │   ├── periode/
+│   │   │   ├── periode.validation.ts
+│   │   │   ├── periode.service.ts
+│   │   │   ├── periode.controller.ts
+│   │   │   └── periode.routes.ts
+│   │   ├── jurnal/
+│   │   │   ├── jurnal.validation.ts
+│   │   │   ├── jurnal.service.ts
+│   │   │   ├── jurnal.controller.ts
+│   │   │   └── jurnal.routes.ts
+│   │   ├── buku-besar/                    # Modul laporan dipisah per folder
+│   │   │   ├── buku-besar.validation.ts
+│   │   │   ├── buku-besar.service.ts
+│   │   │   └── buku-besar.controller.ts
+│   │   ├── laba-rugi/
+│   │   │   ├── laba-rugi.validation.ts
+│   │   │   ├── laba-rugi.service.ts
+│   │   │   └── laba-rugi.controller.ts
+│   │   ├── neraca/
+│   │   │   ├── neraca.validation.ts
+│   │   │   ├── neraca.service.ts          # ⚠ typo aktual: neraca,service.ts
+│   │   │   └── neraca.controller.ts
+│   │   └── arus-kas/
+│   │       ├── arus-kas.validation.ts
+│   │       ├── arus-kas.service.ts
+│   │       └── arus-kas.controller.ts
+│   ├── routes/
+│   │   ├── index.ts                       # Registrasi semua route modul
+│   │   └── laporan.routes.ts              # Registrasi semua route laporan
+│   └── shared/
+│       ├── config/
+│       │   └── env.ts
+│       ├── errors/
+│       │   └── api-error.ts               # Custom error class
+│       ├── middleware/
+│       │   ├── async-handler.ts           # Wrapper async controller
+│       │   ├── error-handler.ts
+│       │   └── not-found-handler.ts
+│       └── utils/
+│           ├── api-response.ts            # Format response standar
+│           └── logger.ts
+├── drizzle.config.ts
+├── package.json
+└── tsconfig.json
+
+packages/
+└── types/
+    └── src/
+        ├── api/
+        │   └── response.ts                # Shared type ApiResponse
+        └── index.ts
+
+school-platform-bruno/                     # Bruno API collection
+├── akun/
+├── jurnal/
+├── laporan/
+├── periode/
+├── environments/
+└── bruno.json
 ```
+
+> **Catatan:** Ditemukan typo pada nama file `neraca,service.ts` (menggunakan koma). Seharusnya `neraca.service.ts` menggunakan titik. Perlu di-rename agar TypeScript bisa mengenali file tersebut.
 
 ### Layer Arsitektur
 
