@@ -1,7 +1,7 @@
 import { ApiError } from "@/shared/errors/api-error";
 import { asyncHandler } from "@/shared/middleware/async-handler";
 import { ApiResponse } from "@/shared/utils/api-response";
-import { jurnalService } from "./jurnal.service";
+import { JurnalService } from "./jurnal.service";
 import {
   batalJurnalSchema,
   buatJurnalSchema,
@@ -19,7 +19,7 @@ export const ambilSemuaJurnal = asyncHandler(async (req, res) => {
     );
   }
 
-  const data = await jurnalService.ambilSemua(query.data);
+  const data = await JurnalService.ambilSemua(query.data);
 
   return ApiResponse.Success(res, "Berhasil mengambil data jurnal", data);
 });
@@ -27,7 +27,7 @@ export const ambilSemuaJurnal = asyncHandler(async (req, res) => {
 export const ambilDetailJurnal = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const data = await jurnalService.ambilSatuById(id);
+  const data = await JurnalService.ambilSatuById(id);
 
   return ApiResponse.Success(res, "Berhasil mengambil detail jurnal", data);
 });
@@ -39,7 +39,7 @@ export const buatJurnal = asyncHandler(async (req, res) => {
     throw ApiError.validation("Data jurnal tidak valid", body.error.issues);
   }
 
-  const data = await jurnalService.buat(body.data);
+  const data = await JurnalService.buat(body.data);
 
   return ApiResponse.created(res, "Jurnal berhasil dibuat", data);
 });
@@ -53,7 +53,7 @@ export const updateJurnal = asyncHandler(async (req, res) => {
     throw ApiError.validation("Data jurnal tidak valid", body.error.issues);
   }
 
-  const data = await jurnalService.update(id, body.data);
+  const data = await JurnalService.update(id, body.data);
 
   return ApiResponse.Success(res, "Jurnal berhasil diperbarui", data);
 });
@@ -61,7 +61,7 @@ export const updateJurnal = asyncHandler(async (req, res) => {
 export const postingJurnal = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const data = await jurnalService.posting(id);
+  const data = await JurnalService.posting(id);
 
   return ApiResponse.Success(res, "Jurnal berhasil diposting", data);
 });
@@ -75,7 +75,7 @@ export const batalkanJurnal = asyncHandler(async (req, res) => {
     throw ApiError.validation("Data pembatalan tidak valid", body.error.issues);
   }
 
-  const data = await jurnalService.batal(id, body.data);
+  const data = await JurnalService.batal(id, body.data);
 
   return ApiResponse.Success(res, "Jurnal berhasil dibatalkan", data);
 });
@@ -83,7 +83,7 @@ export const batalkanJurnal = asyncHandler(async (req, res) => {
 export const hapusJurnal = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  await jurnalService.hapus(id);
+  await JurnalService.hapus(id);
 
   return ApiResponse.Success(res, "Jurnal berhasil dihapus", null);
 });

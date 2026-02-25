@@ -14,51 +14,50 @@ import type {
   UpdateJurnalDTO,
 } from "./jurnal.validation";
 
-async function generateNomorJurnal(tahun: number): Promise<string> {
-  const jurnalTahunIni = await db.select().from(jurnal);
-  const jurnalFiltered = jurnalTahunIni.filter((j) =>
-    j.nomor.startsWith(`JRN-${tahun}`),
-  );
-
-  const urutan = (jurnalFiltered.length + 1).toString().padStart(3, "0");
-  return `JRN-${tahun}-${urutan}`;
-}
-
-async function validasiAkunBaris(akunIds: string[]) {
-  const akunDitemukan = await db
-    .select()
-    .from(akun)
-    .where(inArray(akun.id, akunIds));
-
-  if (akunDitemukan.length !== akunIds.length) {
-    throw ApiError.notFound(
-      "Satu atau lebih akun pada baris jurnal tidak ditemukan",
+export class JurnalService {
+  static async generateNomorJurnal(tahun: number): Promise<string> {
+    const jurnalTahunIni = await db.select().from(jurnal);
+    const jurnalFiltered = jurnalTahunIni.filter((j) =>
+      j.nomor.startsWith(`JRN-${tahun}`),
     );
+
+    const urutan = (jurnalFiltered.length + 1).toString().padStart(3, "0");
+    return `JRN-${tahun}-${urutan}`;
   }
 
-  const akunInduk = akunDitemukan.filter((a) => a.adalahInduk);
-  if (akunInduk.length > 0) {
-    const namaAkunInduk = akunInduk
-      .map((a) => `${a.kode} - ${a.nama}`)
-      .join(", ");
-    throw ApiError.badRequest(
-      `Akun induk tidak bisa dipakai di baris jurnal: ${namaAkunInduk}`,
-    );
-  }
+  static async validasiAkunBaris(akunIds: string[]) {
+    const akunDitemukan = await db
+      .select()
+      .from(akun)
+      .where(inArray(akun.id, akunIds));
 
-  const akunTidakAktif = akunDitemukan.filter((a) => !a.aktif);
-  if (akunTidakAktif.length > 0) {
-    const namaAkunTidakAktif = akunTidakAktif
-      .map((a) => `${a.kode} - ${a.nama}`)
-      .join(", ");
-    throw ApiError.badRequest(
-      `Akun tidak aktif tidak bisa dipakai di baris jurnal: ${namaAkunTidakAktif}`,
-    );
-  }
-}
+    if (akunDitemukan.length !== akunIds.length) {
+      throw ApiError.notFound(
+        "Satu atau lebih akun pada baris jurnal tidak ditemukan",
+      );
+    }
 
-export const jurnalService = {
-  async ambilSemua(query: QueryJurnalDTO) {
+    const akunInduk = akunDitemukan.filter((a) => a.adalahInduk);
+    if (akunInduk.length > 0) {
+      const namaAkunInduk = akunInduk
+        .map((a) => `${a.kode} - ${a.nama}`)
+        .join(", ");
+      throw ApiError.badRequest(
+        `Akun induk tidak bisa dipakai di baris jurnal: ${namaAkunInduk}`,
+      );
+    }
+
+    const akunTidakAktif = akunDitemukan.filter((a) => !a.aktif);
+    if (akunTidakAktif.length > 0) {
+      const namaAkunTidakAktif = akunTidakAktif
+        .map((a) => `${a.kode} - ${a.nama}`)
+        .join(", ");
+      throw ApiError.badRequest(
+        `Akun tidak aktif tidak bisa dipakai di baris jurnal: ${namaAkunTidakAktif}`,
+      );
+    }
+  }
+  static async ambilSemua(query: QueryJurnalDTO) {
     const kondisi = [];
 
     if (query.status) {
@@ -84,9 +83,8 @@ export const jurnalService = {
       .orderBy(jurnal.tanggal, jurnal.nomor);
 
     return hasil;
-  },
-
-  async ambilSatuById(id: string) {
+  }
+  static async ambilSatuById(id: string) {
     const [headerJurnal] = await db
       .select()
       .from(jurnal)
@@ -111,9 +109,8 @@ export const jurnalService = {
       .where(eq(jurnalBaris.jurnalId, id));
 
     return { ...headerJurnal, baris };
-  },
-
-  async buat(data: BuatJurnalDTO) {
+  }
+  static async buat(data: BuatJurnalDTO) {
     const [periode] = await db
       .select()
       .from(periodeFiskal)
@@ -130,10 +127,10 @@ export const jurnalService = {
     }
 
     const akunIds = data.baris.map((b) => b.akunId);
-    await validasiAkunBaris(akunIds);
+    await this.validasiAkunBaris(akunIds);
 
     const tanggalDate = new Date(data.tanggal);
-    const nomor = await generateNomorJurnal(tanggalDate.getFullYear());
+    const nomor = await this.generateNomorJurnal(tanggalDate.getFullYear());
 
     const jurnalBaru = await db.transaction(async (trx) => {
       const [headerBaru] = await trx
@@ -161,11 +158,10 @@ export const jurnalService = {
       return headerBaru;
     });
 
-    return jurnalService.ambilSatuById(jurnalBaru.id);
-  },
-
-  async update(id: string, data: UpdateJurnalDTO) {
-    const jurnalAda = await jurnalService.ambilSatuById(id);
+    return this.ambilSatuById(jurnalBaru.id);
+  }
+  static async update(id: string, data: UpdateJurnalDTO) {
+    const jurnalAda = await this.ambilSatuById(id);
 
     if (jurnalAda.status !== "DRAF") {
       throw ApiError.badRequest(
@@ -189,7 +185,7 @@ export const jurnalService = {
     }
 
     const akunIds = data.baris.map((b) => b.akunId);
-    await validasiAkunBaris(akunIds);
+    await this.validasiAkunBaris(akunIds);
 
     await db.transaction(async (trx) => {
       await trx
@@ -216,11 +212,10 @@ export const jurnalService = {
       );
     });
 
-    return jurnalService.ambilSatuById(id);
-  },
-
-  async posting(id: string) {
-    const jurnalAda = await jurnalService.ambilSatuById(id);
+    return this.ambilSatuById(id);
+  }
+  static async posting(id: string) {
+    const jurnalAda = await this.ambilSatuById(id);
 
     if (jurnalAda.status !== "DRAF") {
       throw ApiError.badRequest(
@@ -249,10 +244,10 @@ export const jurnalService = {
       .returning();
 
     return jurnalDiposting;
-  },
+  }
 
-  async batal(id: string, data: BatalJurnalDTO) {
-    const jurnalAda = await jurnalService.ambilSatuById(id);
+  static async batal(id: string, data: BatalJurnalDTO) {
+    const jurnalAda = await this.ambilSatuById(id);
 
     if (jurnalAda.status === "DIBATALKAN") {
       throw ApiError.badRequest("Jurnal ini sudah dibatalkan sebelumnya");
@@ -269,10 +264,10 @@ export const jurnalService = {
       .returning();
 
     return jurnalDibatalkan;
-  },
+  }
 
-  async hapus(id: string) {
-    const jurnalAda = await jurnalService.ambilSatuById(id);
+  static async hapus(id: string) {
+    const jurnalAda = await this.ambilSatuById(id);
 
     if (jurnalAda.status !== "DRAF") {
       throw ApiError.badRequest(
@@ -284,5 +279,8 @@ export const jurnalService = {
       await trx.delete(jurnalBaris).where(eq(jurnalBaris.jurnalId, id));
       await trx.delete(jurnal).where(eq(jurnal.id, id));
     });
-  },
-};
+  }
+}
+
+// export const jurnalService = {
+// };
