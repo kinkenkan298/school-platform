@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/akun?tipe=ASET&aktif=true
+  url: {{baseUrl}}/akun?tipe=ASET
   body: none
   auth: none
 }
 
 params:query {
   tipe: ASET
-  aktif: true
+  ~aktif: true
   ~indukId: 
 }
