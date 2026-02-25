@@ -1,11 +1,11 @@
+import { ApiError } from "@/shared/errors/api-error";
 import { asyncHandler } from "@/shared/middleware/async-handler";
 import { ApiResponse } from "@/shared/utils/api-response";
-import { ApiError } from "@/shared/errors/api-error";
-import { periodeFiskalService } from "./periode.service";
+import { PeriodeFiskalService } from "./periode.service";
 import { buatPeriodeSchema } from "./periode.validation";
 
 export const ambilSemuaPeriode = asyncHandler(async (_req, res) => {
-  const data = await periodeFiskalService.ambilSemua();
+  const data = await PeriodeFiskalService.ambilSemua();
 
   return ApiResponse.Success(
     res,
@@ -17,7 +17,7 @@ export const ambilSemuaPeriode = asyncHandler(async (_req, res) => {
 export const ambilDetailPeriode = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const data = await periodeFiskalService.ambilSatuById(id);
+  const data = await PeriodeFiskalService.ambilSatuById(id);
 
   return ApiResponse.Success(
     res,
@@ -33,7 +33,7 @@ export const buatPeriode = asyncHandler(async (req, res) => {
     throw ApiError.validation("Data periode tidak valid", body.error.issues);
   }
 
-  const data = await periodeFiskalService.buat(body.data);
+  const data = await PeriodeFiskalService.buat(body.data);
 
   return ApiResponse.created(res, "Periode fiskal berhasil dibuat", data);
 });
@@ -41,7 +41,7 @@ export const buatPeriode = asyncHandler(async (req, res) => {
 export const tutupPeriode = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const data = await periodeFiskalService.tutup(id);
+  const data = await PeriodeFiskalService.tutup(id);
 
   return ApiResponse.Success(res, "Periode fiskal berhasil ditutup", data);
 });

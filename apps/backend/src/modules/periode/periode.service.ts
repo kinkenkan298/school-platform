@@ -1,20 +1,20 @@
-import { eq, and } from "drizzle-orm";
 import { db } from "@/db/db";
 import { periodeFiskal } from "@/drizzle/schemas/finance";
 import { ApiError } from "@/shared/errors/api-error";
+import { and, eq } from "drizzle-orm";
 import type { BuatPeriodeDTO } from "./periode.validation";
 
-export const periodeFiskalService = {
-  async ambilSemua() {
+export class PeriodeFiskalService {
+  static async ambilSemua() {
     const hasil = await db
       .select()
       .from(periodeFiskal)
       .orderBy(periodeFiskal.tahun, periodeFiskal.bulan);
 
     return hasil;
-  },
+  }
 
-  async ambilSatuById(id: string) {
+  static async ambilSatuById(id: string) {
     const [hasil] = await db
       .select()
       .from(periodeFiskal)
@@ -25,10 +25,9 @@ export const periodeFiskalService = {
     }
 
     return hasil;
-  },
+  }
 
-  async buat(data: BuatPeriodeDTO) {
-    // Cek periode yang sama sudah ada atau belum
+  static async buat(data: BuatPeriodeDTO) {
     const [sudahAda] = await db
       .select()
       .from(periodeFiskal)
@@ -53,10 +52,10 @@ export const periodeFiskalService = {
       .returning();
 
     return periodeBaru;
-  },
+  }
 
-  async tutup(id: string) {
-    const periode = await periodeFiskalService.ambilSatuById(id);
+  static async tutup(id: string) {
+    const periode = await this.ambilSatuById(id);
 
     if (periode.sudahDitutup) {
       throw ApiError.badRequest("Periode ini sudah ditutup sebelumnya");
@@ -72,5 +71,5 @@ export const periodeFiskalService = {
       .returning();
 
     return periodeDitutup;
-  },
-};
+  }
+}
