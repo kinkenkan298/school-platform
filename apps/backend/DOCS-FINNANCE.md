@@ -1,5 +1,5 @@
 # Dokumentasi Backend Finance MVP
-> Aplikasi SaaS Keuangan Sekolah  
+> Aplikasi Web Platform Sekolah  
 > Stack: TypeScript · Express · PostgreSQL · Drizzle ORM
 
 ---
