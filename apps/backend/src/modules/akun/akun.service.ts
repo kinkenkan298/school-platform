@@ -1,15 +1,15 @@
-import { eq, and } from "drizzle-orm";
 import { db } from "@/db/db";
-import { akun } from "@/drizzle/schemas/finance";
+import { akun, jurnalBaris } from "@/drizzle/schemas/finance";
 import { ApiError } from "@/shared/errors/api-error";
+import { and, eq } from "drizzle-orm";
 import type {
   BuatAkunDTO,
   QueryAkunDTO,
   UpdateAkunDTO,
 } from "./akun.validation";
 
-export const akunService = {
-  async ambilSemua(query: QueryAkunDTO) {
+export class AkunService {
+  static async ambilSemua(query: QueryAkunDTO) {
     const kondisi = [];
 
     if (query.tipe) {
@@ -30,20 +30,8 @@ export const akunService = {
       .where(kondisi.length > 0 ? and(...kondisi) : undefined);
 
     return hasil;
-  },
-
-  async ambilSatuById(id: string) {
-    const [hasil] = await db.select().from(akun).where(eq(akun.id, id));
-
-    if (!hasil) {
-      throw ApiError.notFound("Akun tidak ditemukan");
-    }
-
-    return hasil;
-  },
-
-  async buat(data: BuatAkunDTO) {
-    // Cek kode akun sudah dipakai atau belum
+  }
+  static async buat(data: BuatAkunDTO) {
     const [kodeSudahAda] = await db
       .select()
       .from(akun)
@@ -53,7 +41,6 @@ export const akunService = {
       throw ApiError.conflict(`Kode akun "${data.kode}" sudah digunakan`);
     }
 
-    // Jika ada indukId, validasi bahwa induk tersebut ada dan memang adalah akun induk
     if (data.indukId) {
       const [induk] = await db
         .select()
@@ -85,26 +72,31 @@ export const akunService = {
       .returning();
 
     return akunBaru;
-  },
+  }
+  static async ambilSatuById(id: string) {
+    const [hasil] = await db.select().from(akun).where(eq(akun.id, id));
 
-  async update(id: string, data: UpdateAkunDTO) {
-    // Pastikan akun ada
-    await akunService.ambilSatuById(id);
+    if (!hasil) {
+      throw ApiError.notFound("Akun tidak ditemukan");
+    }
 
-    // Jika kode diubah, cek apakah kode baru sudah dipakai akun lain
+    return hasil;
+  }
+
+  static async update(id: string, data: UpdateAkunDTO) {
+    await AkunService.ambilSatuById(id);
+
     if (data.kode) {
       const [kodeSudahAda] = await db
         .select()
         .from(akun)
         .where(and(eq(akun.kode, data.kode), eq(akun.id, id)));
 
-      // Jika ada akun lain dengan kode yang sama (bukan dirinya sendiri)
       if (kodeSudahAda && kodeSudahAda.id !== id) {
         throw ApiError.conflict(`Kode akun "${data.kode}" sudah digunakan`);
       }
     }
 
-    // Jika indukId diubah, validasi akun induk baru
     if (data.indukId) {
       if (data.indukId === id) {
         throw ApiError.badRequest(
@@ -138,13 +130,10 @@ export const akunService = {
       .returning();
 
     return akunDiperbarui;
-  },
+  }
+  static async hapus(id: string) {
+    await AkunService.ambilSatuById(id);
 
-  async hapus(id: string) {
-    // Pastikan akun ada
-    await akunService.ambilSatuById(id);
-
-    // Cek apakah akun ini dipakai sebagai induk oleh akun lain
     const [adaAnak] = await db.select().from(akun).where(eq(akun.indukId, id));
 
     if (adaAnak) {
@@ -153,9 +142,17 @@ export const akunService = {
       );
     }
 
-    // TODO: Cek apakah akun sudah dipakai di jurnal baris
-    // (akan ditambahkan setelah tabel jurnal_baris siap dipakai)
+    const [dipakaiJurnal] = await db
+      .select()
+      .from(jurnalBaris)
+      .where(eq(jurnalBaris.akunId, id));
+
+    if (dipakaiJurnal) {
+      throw ApiError.badRequest(
+        "Akun tidak bisa dihapus karena sudah dipakai di jurnal",
+      );
+    }
 
     await db.delete(akun).where(eq(akun.id, id));
-  },
-};
+  }
+}

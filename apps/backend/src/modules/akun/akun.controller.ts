@@ -1,12 +1,12 @@
+import { ApiError } from "@/shared/errors/api-error";
 import { asyncHandler } from "@/shared/middleware/async-handler";
 import { ApiResponse } from "@/shared/utils/api-response";
-import { ApiError } from "@/shared/errors/api-error";
-import { akunService } from "./akun.service";
+import { AkunService } from "./akun.service";
 import {
   buatAkunSchema,
-  updateAkunSchema,
-  queryAkunSchema,
   QueryAkunDTO,
+  queryAkunSchema,
+  updateAkunSchema,
 } from "./akun.validation";
 
 export const ambilSemuaAkun = asyncHandler<{}, {}, { data: QueryAkunDTO }>(
@@ -20,7 +20,7 @@ export const ambilSemuaAkun = asyncHandler<{}, {}, { data: QueryAkunDTO }>(
       );
     }
 
-    const data = await akunService.ambilSemua(query.data);
+    const data = await AkunService.ambilSemua(query.data);
 
     return ApiResponse.Success(res, "Berhasil mengambil data akun", data);
   },
@@ -29,7 +29,7 @@ export const ambilSemuaAkun = asyncHandler<{}, {}, { data: QueryAkunDTO }>(
 export const ambilDetailAkun = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const data = await akunService.ambilSatuById(id);
+  const data = await AkunService.ambilSatuById(id);
 
   return ApiResponse.Success(res, "Berhasil mengambil detail akun", data);
 });
@@ -41,7 +41,7 @@ export const buatAkun = asyncHandler(async (req, res) => {
     throw ApiError.validation("Data akun tidak valid", body.error.issues);
   }
 
-  const data = await akunService.buat(body.data);
+  const data = await AkunService.buat(body.data);
 
   return ApiResponse.created(res, "Akun berhasil dibuat", data);
 });
@@ -55,7 +55,7 @@ export const updateAkun = asyncHandler(async (req, res) => {
     throw ApiError.validation("Data akun tidak valid", body.error.issues);
   }
 
-  const data = await akunService.update(id, body.data);
+  const data = await AkunService.update(id, body.data);
 
   return ApiResponse.Success(res, "Akun berhasil diperbarui", data);
 });
@@ -63,7 +63,7 @@ export const updateAkun = asyncHandler(async (req, res) => {
 export const hapusAkun = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  await akunService.hapus(id);
+  await AkunService.hapus(id);
 
   return ApiResponse.Success(res, "Akun berhasil dihapus", null);
 });
