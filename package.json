@@ -15,5 +15,11 @@
   "type": "module",
   "devDependencies": {
     "turbo": "^2.8.10"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "turbo"
+    ]
   }
 }
