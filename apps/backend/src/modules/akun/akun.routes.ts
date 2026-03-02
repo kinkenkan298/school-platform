@@ -12,7 +12,7 @@ const akunRouter: Router = Router();
 akunRouter.get("/", ambilSemuaAkun);
 akunRouter.get("/:id", ambilDetailAkun);
 akunRouter.post("/", buatAkun);
-akunRouter.put("/", updateAkun);
+akunRouter.put("/:id", updateAkun);
 akunRouter.delete("/:id", hapusAkun);
 
 export { akunRouter };
