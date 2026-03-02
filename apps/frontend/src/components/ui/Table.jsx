@@ -1,34 +1,34 @@
-export default function Table({ children }) {
+export default function Table({ children, className = "" }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-800">
-      <table className="w-full border-collapse text-sm">{children}</table>
+    <div className={["overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white", className].join(" ")}>
+      <table className="w-full border-collapse text-sm text-left">{children}</table>
     </div>
   );
 }
 
-export function THead({ children }) {
+export function THead({ children, className = "" }) {
   return (
-    <thead className="bg-slate-900/60 text-slate-200">
-      <tr className="text-left">{children}</tr>
+    <thead className={["bg-slate-50 border-b border-slate-200", className].join(" ")}>
+      <tr>{children}</tr>
     </thead>
   );
 }
 
 export function TH({ children, className = "" }) {
   return (
-    <th className={["px-3 py-2 font-medium", className].join(" ")}>
+    <th className={["px-4 py-3 font-bold text-slate-700 whitespace-nowrap", className].join(" ")}>
       {children}
     </th>
   );
 }
 
-export function TBody({ children }) {
-  return <tbody className="divide-y divide-slate-800">{children}</tbody>;
+export function TBody({ children, className = "" }) {
+  return <tbody className={["divide-y divide-slate-100", className].join(" ")}>{children}</tbody>;
 }
 
 export function TD({ children, className = "" }) {
   return (
-    <td className={["px-3 py-2 text-slate-100", className].join(" ")}>
+    <td className={["px-4 py-3 text-slate-800", className].join(" ")}>
       {children}
     </td>
   );

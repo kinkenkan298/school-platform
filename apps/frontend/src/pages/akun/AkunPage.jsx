@@ -6,60 +6,94 @@ import Select from "../../components/ui/Select.jsx";
 import Checkbox from "../../components/ui/Checkbox.jsx";
 import Modal from "../../components/ui/Modal.jsx";
 import Spinner from "../../components/ui/Spinner.jsx";
-import Table, { TBody, TD, TH, THead } from "../../components/ui/Table.jsx";
+// Menghapus import Table bawaan karena kita akan menggunakan tag standar HTML
 import Badge from "../../components/ui/Badge.jsx";
-import { AkunAPI } from "../../api/akun.api.js";
+import { AkunAPI, TIPE_AKUN } from "../../api/akun.api.js";
 import { extractFieldErrors } from "../../utils/errors.js";
 
-const TIPE = ["ASET", "LIABILITAS", "EKUITAS", "PENDAPATAN", "BEBAN"];
 const SALDO = ["DEBIT", "KREDIT"];
 
 export default function AkunPage() {
   const [loading, setLoading] = useState(false);
+  const [loadingMaster, setLoadingMaster] = useState(false);
   const [error, setError] = useState("");
-  const [akun, setAkun] = useState([]);
 
+  const [akunAll, setAkunAll] = useState([]);
+  const [rows, setRows] = useState([]);
   const [q, setQ] = useState("");
-  const [filterTipe, setFilterTipe] = useState("");
+  const [filterTipe, setFilterTipe] = useState("ASET");
   const [filterAktif, setFilterAktif] = useState("");
+  const [filterIndukId, setFilterIndukId] = useState("");
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [mode, setMode] = useState("create"); // create | edit
+  const [mode, setMode] = useState("create");
   const [editing, setEditing] = useState(null);
 
-  async function load() {
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
+  const [detailData, setDetailData] = useState(null);
+
+  async function loadMaster() {
+    setLoadingMaster(true);
+    try {
+      const res = await AkunAPI.listAll();
+      setAkunAll(res.data || []);
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      setLoadingMaster(false);
+    }
+  }
+
+  async function loadRows() {
     setLoading(true);
     setError("");
     try {
       const res = await AkunAPI.list({
-        tipe: filterTipe || undefined,
+        tipe: filterTipe,
         aktif: filterAktif || undefined,
+        indukId: filterIndukId || undefined,
       });
-      setAkun(res.data || []);
+      setRows(res.data || []);
     } catch (e) {
-      setError(e.message || "Gagal memuat akun");
+      setError(e.message || "Gagal memuat data akun. Pastikan Backend berjalan normal.");
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterTipe, filterAktif]);
+  async function refreshAll() {
+    await Promise.all([loadMaster(), loadRows()]);
+  }
 
-  const filtered = useMemo(() => {
+  useEffect(() => {
+    loadMaster();
+    loadRows();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    loadRows();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterTipe, filterAktif, filterIndukId]);
+
+  const akunIndukAll = useMemo(() => {
+    return (akunAll || []).filter((a) => a.adalahInduk === true);
+  }, [akunAll]);
+
+  const indukOptionsForFilter = useMemo(() => {
+    return akunIndukAll.filter((a) => a.tipe === filterTipe);
+  }, [akunIndukAll, filterTipe]);
+
+  const filteredRows = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return akun;
-    return akun.filter((a) => {
+    if (!s) return rows;
+    return rows.filter((a) => {
       const t = `${a.kode || ""} ${a.nama || ""}`.toLowerCase();
       return t.includes(s);
     });
-  }, [akun, q]);
-
-  const akunIndukOptions = useMemo(() => {
-    return akun.filter((a) => a.adalahInduk === true);
-  }, [akun]);
+  }, [rows, q]);
 
   function openCreate() {
     setMode("create");
@@ -73,13 +107,29 @@ export default function AkunPage() {
     setModalOpen(true);
   }
 
+  async function openDetail(row) {
+    setDetailOpen(true);
+    setDetailLoading(true);
+    setDetailError("");
+    setDetailData(null);
+
+    try {
+      const res = await AkunAPI.detail(row.id);
+      setDetailData(res.data);
+    } catch (e) {
+      setDetailError(e.message || "Gagal mengambil detail akun");
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
   async function onDelete(row) {
-    const ok = confirm(`Hapus akun ${row.kode} - ${row.nama} ?`);
+    const ok = confirm(`Hapus akun ${row.kode} - ${row.nama}?`);
     if (!ok) return;
 
     try {
       await AkunAPI.remove(row.id);
-      await load();
+      await refreshAll();
       alert("Akun berhasil dihapus");
     } catch (e) {
       alert(e.message || "Gagal menghapus akun");
@@ -87,161 +137,216 @@ export default function AkunPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <Card className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-6 p-4 md:p-6 bg-slate-50 min-h-screen">
+      {/* Header Card */}
+      <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white border border-slate-200 shadow-sm rounded-xl p-6">
         <div>
-          <h2 className="text-base font-semibold">akun</h2>
-          <p className="mt-1 text-sm text-slate-400">
-            Mapping endpoint: <span className="text-slate-200">GET/POST/PUT/DELETE /akun</span>
-          </p>
+          <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Manajemen Akun (COA)</h2>
+          {loadingMaster && (
+            <p className="mt-2 text-xs font-medium text-blue-500 animate-pulse">Memuat master akun untuk dropdown…</p>
+          )}
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={load}>Refresh</Button>
-          <Button variant="primary" onClick={openCreate}>
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={refreshAll} className="!bg-white !border !border-slate-300 !text-slate-700 hover:!bg-slate-50 !shadow-sm !px-4 !py-2 !rounded-lg transition-all font-medium">
+            ↻ Refresh
+          </Button>
+          <Button variant="primary" onClick={openCreate} className="!bg-blue-600 hover:!bg-blue-700 !text-white !shadow-md !px-5 !py-2 !rounded-lg transition-all font-semibold border-none">
             + Tambah Akun
           </Button>
         </div>
       </Card>
 
-      <Card>
-        <div className="grid gap-3 sm:grid-cols-4">
+      {/* Filter Card */}
+      <Card className="bg-white border border-slate-200 shadow-sm rounded-xl p-5">
+        <div className="grid gap-4 sm:grid-cols-5 items-end">
           <div className="sm:col-span-2">
-            <p className="text-xs text-slate-400">Cari (kode / nama)</p>
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="contoh: 1101 / Kas" />
+            <p className="text-sm font-semibold text-slate-600 mb-2">Cari Akun</p>
+            <Input 
+              value={q} 
+              onChange={(e) => setQ(e.target.value)} 
+              placeholder="Contoh: 1101 atau Kas..." 
+              className="w-full border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg shadow-sm bg-white text-slate-800"
+            />
           </div>
 
           <div>
-            <p className="text-xs text-slate-400">Filter tipe</p>
-            <Select value={filterTipe} onChange={(e) => setFilterTipe(e.target.value)}>
-              <option value="">Semua</option>
-              {TIPE.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
+            <p className="text-sm font-semibold text-slate-600 mb-2">Tipe</p>
+            <Select value={filterTipe} onChange={(e) => setFilterTipe(e.target.value)} className="w-full border-slate-300 rounded-lg shadow-sm bg-white text-slate-800">
+              {TIPE_AKUN.map((t) => (
+                <option key={t} value={t}>{t}</option>
               ))}
             </Select>
           </div>
 
           <div>
-            <p className="text-xs text-slate-400">Filter aktif</p>
-            <Select value={filterAktif} onChange={(e) => setFilterAktif(e.target.value)}>
-              <option value="">Semua</option>
+            <p className="text-sm font-semibold text-slate-600 mb-2">Status</p>
+            <Select value={filterAktif} onChange={(e) => setFilterAktif(e.target.value)} className="w-full border-slate-300 rounded-lg shadow-sm bg-white text-slate-800">
+              <option value="">Semua Status</option>
               <option value="true">Aktif</option>
               <option value="false">Nonaktif</option>
+            </Select>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-slate-600 mb-2">Induk</p>
+            <Select value={filterIndukId} onChange={(e) => setFilterIndukId(e.target.value)} className="w-full border-slate-300 rounded-lg shadow-sm bg-white text-slate-800">
+              <option value="">Semua Induk</option>
+              {indukOptionsForFilter.map((a) => (
+                <option key={a.id} value={a.id}>{a.kode} - {a.nama}</option>
+              ))}
             </Select>
           </div>
         </div>
       </Card>
 
-      {loading ? (
-        <Card>
-          <Spinner label="Memuat akun..." />
-        </Card>
-      ) : error ? (
-        <Card>
-          <p className="text-sm text-red-300">{error}</p>
-        </Card>
-      ) : (
-        <Table>
-          <THead>
-            <TH>Kode</TH>
-            <TH>Nama</TH>
-            <TH>Tipe</TH>
-            <TH>Saldo Normal</TH>
-            <TH>Induk</TH>
-            <TH>Status</TH>
-            <TH className="text-right">Aksi</TH>
-          </THead>
-          <TBody>
-            {filtered.map((a) => (
-              <tr key={a.id} className="hover:bg-slate-900/40">
-                <TD className="font-mono text-slate-200">{a.kode}</TD>
-                <TD>{a.nama}</TD>
-                <TD>{a.tipe}</TD>
-                <TD>{a.saldoNormal}</TD>
-                <TD className="text-slate-300">{a.indukId ? "Ada" : "-"}</TD>
-                <TD>
-                  {a.aktif ? <Badge tone="ok">Aktif</Badge> : <Badge tone="warn">Nonaktif</Badge>}
-                  {a.adalahInduk ? <Badge className="ml-2">Induk</Badge> : null}
-                </TD>
-                <TD className="text-right">
-                  <div className="inline-flex gap-2">
-                    <Button onClick={() => openEdit(a)}>Edit</Button>
-                    <Button variant="danger" onClick={() => onDelete(a)}>
-                      Hapus
-                    </Button>
-                  </div>
-                </TD>
+      {/* Table Section (Using standard HTML table for perfect layout) */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-x-auto">
+        {loading ? (
+          <div className="p-10 text-center">
+            <Spinner label="Mengambil data akun..." />
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center bg-red-50">
+            <p className="text-sm font-medium text-red-600">{error}</p>
+          </div>
+        ) : (
+          <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="px-6 py-4 text-sm font-bold text-slate-700">Kode</th>
+                <th className="px-6 py-4 text-sm font-bold text-slate-700">Nama Akun</th>
+                <th className="px-6 py-4 text-sm font-bold text-slate-700">Tipe</th>
+                <th className="px-6 py-4 text-sm font-bold text-slate-700">Saldo Normal</th>
+                <th className="px-6 py-4 text-sm font-bold text-slate-700">Induk</th>
+                <th className="px-6 py-4 text-sm font-bold text-slate-700">Status</th>
+                <th className="px-6 py-4 text-sm font-bold text-slate-700 text-right">Aksi</th>
               </tr>
-            ))}
-            {filtered.length === 0 ? (
-              <tr>
-                <TD className="py-6 text-center text-slate-400" colSpan={7}>
-                  Tidak ada data.
-                </TD>
-              </tr>
-            ) : null}
-          </TBody>
-        </Table>
-      )}
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredRows.map((a) => (
+                <tr key={a.id} className="hover:bg-blue-50/50 transition-colors">
+                  <td className="px-6 py-4 font-mono font-semibold text-slate-700">{a.kode}</td>
+                  <td className="px-6 py-4 text-slate-800 font-medium">{a.nama}</td>
+                  <td className="px-6 py-4">
+                    <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-md text-xs font-semibold">{a.tipe}</span>
+                  </td>
+                  <td className="px-6 py-4 text-slate-600">{a.saldoNormal}</td>
+                  <td className="px-6 py-4 text-slate-500">{a.indukId ? "Ada" : "-"}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      {a.aktif ? <Badge tone="ok" className="!bg-green-100 !text-green-700 border border-green-200">Aktif</Badge> : <Badge tone="warn" className="!bg-orange-100 !text-orange-700 border border-orange-200">Nonaktif</Badge>}
+                      {a.adalahInduk && <Badge className="!bg-blue-100 !text-blue-700 border border-blue-200">Induk</Badge>}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button onClick={() => openDetail(a)} className="!text-xs !bg-white !border !border-slate-300 !text-slate-600 hover:!bg-slate-100 !px-3 !py-1.5 shadow-sm rounded-lg">Detail</Button>
+                      <Button onClick={() => openEdit(a)} className="!text-xs !bg-white !border !border-blue-200 !text-blue-600 hover:!bg-blue-50 !px-3 !py-1.5 shadow-sm rounded-lg">Edit</Button>
+                      <Button variant="danger" onClick={() => onDelete(a)} className="!text-xs !bg-red-50 !text-red-600 hover:!bg-red-100 !border-none !px-3 !py-1.5 shadow-sm rounded-lg">Hapus</Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filteredRows.length === 0 && (
+                <tr>
+                  <td className="py-12 text-center text-slate-500" colSpan={7}>
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="text-3xl mb-2">📭</span>
+                      <p className="text-base font-medium text-slate-600">Belum ada data akun</p>
+                      <p className="text-sm mt-1">Silakan klik tombol <b className="text-slate-700">+ Tambah Akun</b> untuk memulai.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
 
       <AkunFormModal
         open={modalOpen}
         mode={mode}
         initial={editing}
-        akunIndukOptions={akunIndukOptions}
+        akunIndukAll={akunIndukAll}
         onClose={() => setModalOpen(false)}
         onSaved={async () => {
           setModalOpen(false);
-          await load();
+          await refreshAll();
         }}
       />
+
+      <Modal open={detailOpen} title="Detail Akun" onClose={() => setDetailOpen(false)} widthClass="max-w-2xl">
+        {detailLoading ? (
+          <Spinner label="Memuat detail akun..." />
+        ) : detailError ? (
+          <p className="text-sm text-red-500">{detailError}</p>
+        ) : detailData ? (
+          <div className="space-y-4">
+            <div className="grid gap-6 sm:grid-cols-2 bg-slate-50 p-6 rounded-xl border border-slate-200">
+              <div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Kode Akun</p>
+                <p className="font-mono text-xl font-bold text-slate-800 mt-1">{detailData.kode}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nama Akun</p>
+                <p className="text-xl font-semibold text-slate-800 mt-1">{detailData.nama}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tipe</p>
+                <p className="text-slate-700 mt-1 font-medium">{detailData.tipe}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Saldo Normal</p>
+                <p className="text-slate-700 mt-1 font-medium">{detailData.saldoNormal}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Induk ID</p>
+                <p className="font-mono text-slate-500 mt-1">{detailData.indukId || "Tidak memiliki induk"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Status & Tag</p>
+                <div className="flex flex-wrap gap-2">
+                  {detailData.aktif ? <Badge tone="ok" className="!bg-green-100 !text-green-700 border border-green-200">Aktif</Badge> : <Badge tone="warn" className="!bg-orange-100 !text-orange-700 border border-orange-200">Nonaktif</Badge>}
+                  {detailData.adalahInduk ? <Badge className="!bg-blue-100 !text-blue-700 border border-blue-200">Induk</Badge> : <Badge tone="neutral" className="!bg-slate-200 !text-slate-700 border border-slate-300">Detail</Badge>}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">Tidak ada data.</p>
+        )}
+      </Modal>
     </div>
   );
 }
 
-function AkunFormModal({ open, mode, initial, akunIndukOptions, onClose, onSaved }) {
+function AkunFormModal({ open, mode, initial, akunIndukAll, onClose, onSaved }) {
   const isEdit = mode === "edit";
 
   const [saving, setSaving] = useState(false);
   const [formErr, setFormErr] = useState("");
   const [fields, setFields] = useState({
-    kode: "",
-    nama: "",
-    tipe: "ASET",
-    saldoNormal: "DEBIT",
-    indukId: "",
-    adalahInduk: false,
-    aktif: true,
+    kode: "", nama: "", tipe: "ASET", saldoNormal: "DEBIT", indukId: "", adalahInduk: false, aktif: true,
   });
 
   useEffect(() => {
     if (!open) return;
     setFormErr("");
-
     if (isEdit && initial) {
       setFields({
-        kode: initial.kode ?? "",
-        nama: initial.nama ?? "",
-        tipe: initial.tipe ?? "ASET",
-        saldoNormal: initial.saldoNormal ?? "DEBIT",
-        indukId: initial.indukId ?? "",
-        adalahInduk: Boolean(initial.adalahInduk),
-        aktif: Boolean(initial.aktif),
+        kode: initial.kode ?? "", nama: initial.nama ?? "", tipe: initial.tipe ?? "ASET",
+        saldoNormal: initial.saldoNormal ?? "DEBIT", indukId: initial.indukId ?? "",
+        adalahInduk: Boolean(initial.adalahInduk), aktif: Boolean(initial.aktif),
       });
     } else {
-      setFields({
-        kode: "",
-        nama: "",
-        tipe: "ASET",
-        saldoNormal: "DEBIT",
-        indukId: "",
-        adalahInduk: false,
-        aktif: true,
-      });
+      setFields({ kode: "", nama: "", tipe: "ASET", saldoNormal: "DEBIT", indukId: "", adalahInduk: false, aktif: true });
     }
   }, [open, isEdit, initial]);
+
+  const indukOptionsForForm = useMemo(() => {
+    return (akunIndukAll || []).filter((a) => a.tipe === fields.tipe);
+  }, [akunIndukAll, fields.tipe]);
 
   async function submit(e) {
     e.preventDefault();
@@ -249,13 +354,8 @@ function AkunFormModal({ open, mode, initial, akunIndukOptions, onClose, onSaved
     setFormErr("");
 
     const payload = {
-      kode: fields.kode.trim(),
-      nama: fields.nama.trim(),
-      tipe: fields.tipe,
-      saldoNormal: fields.saldoNormal,
-      indukId: fields.indukId ? fields.indukId : null,
-      adalahInduk: Boolean(fields.adalahInduk),
-      aktif: Boolean(fields.aktif),
+      kode: fields.kode.trim(), nama: fields.nama.trim(), tipe: fields.tipe, saldoNormal: fields.saldoNormal,
+      indukId: fields.indukId ? fields.indukId : null, adalahInduk: Boolean(fields.adalahInduk), aktif: Boolean(fields.aktif),
     };
 
     try {
@@ -274,108 +374,66 @@ function AkunFormModal({ open, mode, initial, akunIndukOptions, onClose, onSaved
   }
 
   return (
-    <Modal
-      open={open}
-      title={isEdit ? "Edit Akun" : "Tambah Akun"}
-      onClose={onClose}
+    <Modal open={open} title={isEdit ? "Update Akun" : "Buat Akun Baru"} onClose={onClose}
       footer={
-        <div className="flex justify-end gap-2">
-          <Button onClick={onClose}>Batal</Button>
-          <Button variant="primary" onClick={submit} disabled={saving}>
-            {saving ? "Menyimpan..." : "Simpan"}
+        <div className="flex justify-end gap-3 w-full border-t border-slate-100 pt-4">
+          <Button onClick={onClose} className="!bg-white !border !border-slate-300 !text-slate-700 hover:!bg-slate-50 !px-4 !py-2 !rounded-lg font-medium">Batal</Button>
+          <Button variant="primary" onClick={submit} disabled={saving} className="!bg-blue-600 !text-white hover:!bg-blue-700 !border-none !px-6 !py-2 !rounded-lg font-semibold shadow-md">
+            {saving ? "Menyimpan..." : "Simpan Data"}
           </Button>
         </div>
       }
     >
-      <form onSubmit={submit} className="space-y-4">
-        {formErr ? (
-          <div className="rounded-lg border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-red-200">
+      <form onSubmit={submit} className="space-y-5 pb-2">
+        {formErr && (
+          <div className="whitespace-pre-line rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-sm font-medium">
             {formErr}
           </div>
-        ) : null}
+        )}
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <p className="text-xs text-slate-400">Kode</p>
-            <input
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-400"
-              value={fields.kode}
-              onChange={(e) => setFields((s) => ({ ...s, kode: e.target.value }))}
-              placeholder="contoh: 1101"
-            />
+            <p className="text-sm font-semibold text-slate-700 mb-1.5">Kode Akun</p>
+            <Input value={fields.kode} onChange={(e) => setFields((s) => ({ ...s, kode: e.target.value }))} className="border-slate-300 focus:border-blue-500 focus:ring-blue-500 w-full rounded-lg shadow-sm" placeholder="Cth: 1101" />
           </div>
           <div>
-            <p className="text-xs text-slate-400">Nama</p>
-            <input
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-400"
-              value={fields.nama}
-              onChange={(e) => setFields((s) => ({ ...s, nama: e.target.value }))}
-              placeholder="contoh: Kas Sekolah"
-            />
+            <p className="text-sm font-semibold text-slate-700 mb-1.5">Nama Akun</p>
+            <Input value={fields.nama} onChange={(e) => setFields((s) => ({ ...s, nama: e.target.value }))} className="border-slate-300 focus:border-blue-500 focus:ring-blue-500 w-full rounded-lg shadow-sm" placeholder="Cth: Kas Kecil" />
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <p className="text-xs text-slate-400">Tipe</p>
-            <select
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-400"
-              value={fields.tipe}
-              onChange={(e) => setFields((s) => ({ ...s, tipe: e.target.value }))}
-            >
-              {TIPE.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+            <p className="text-sm font-semibold text-slate-700 mb-1.5">Tipe</p>
+            <Select value={fields.tipe} onChange={(e) => setFields((s) => ({ ...s, tipe: e.target.value }))} className="border-slate-300 w-full rounded-lg shadow-sm">
+              {TIPE_AKUN.map((t) => <option key={t} value={t}>{t}</option>)}
+            </Select>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Saldo Normal</p>
-            <select
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-400"
-              value={fields.saldoNormal}
-              onChange={(e) => setFields((s) => ({ ...s, saldoNormal: e.target.value }))}
-            >
-              {SALDO.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+            <p className="text-sm font-semibold text-slate-700 mb-1.5">Saldo Normal</p>
+            <Select value={fields.saldoNormal} onChange={(e) => setFields((s) => ({ ...s, saldoNormal: e.target.value }))} className="border-slate-300 w-full rounded-lg shadow-sm">
+              {SALDO.map((t) => <option key={t} value={t}>{t}</option>)}
+            </Select>
           </div>
         </div>
 
         <div>
-          <p className="text-xs text-slate-400">Induk (opsional)</p>
-          <select
-            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-400"
-            value={fields.indukId || ""}
-            onChange={(e) => setFields((s) => ({ ...s, indukId: e.target.value }))}
-          >
-            <option value="">— Tidak ada —</option>
-            {akunIndukOptions.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.kode} - {a.nama}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-slate-500">
-            Sesuai rules backend: induk harus akun dengan <b>adalahInduk=true</b>.
-          </p>
+          <p className="text-sm font-semibold text-slate-700 mb-1.5">Pilih Induk (Opsional)</p>
+          <Select value={fields.indukId || ""} onChange={(e) => setFields((s) => ({ ...s, indukId: e.target.value }))} className="border-slate-300 w-full rounded-lg shadow-sm">
+            <option value="">— Tidak ada Induk —</option>
+            {indukOptionsForForm.map((a) => <option key={a.id} value={a.id}>{a.kode} - {a.nama}</option>)}
+          </Select>
         </div>
 
-        <div className="flex flex-wrap gap-4">
-          <Checkbox
-            label="Adalah Induk"
-            checked={fields.adalahInduk}
-            onChange={(e) => setFields((s) => ({ ...s, adalahInduk: e.target.checked }))}
-          />
-          <Checkbox
-            label="Aktif"
-            checked={fields.aktif}
-            onChange={(e) => setFields((s) => ({ ...s, aktif: e.target.checked }))}
-          />
+        <div className="flex flex-wrap gap-8 bg-slate-50 p-5 rounded-xl border border-slate-200 mt-4">
+          <label className="flex items-center gap-3 cursor-pointer group">
+            <Checkbox checked={fields.adalahInduk} onChange={(e) => setFields((s) => ({ ...s, adalahInduk: e.target.checked }))} className="w-5 h-5" />
+            <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">Jadikan Akun Induk</span>
+          </label>
+          <label className="flex items-center gap-3 cursor-pointer group">
+            <Checkbox checked={fields.aktif} onChange={(e) => setFields((s) => ({ ...s, aktif: e.target.checked }))} className="w-5 h-5" />
+            <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">Status Aktif</span>
+          </label>
         </div>
       </form>
     </Modal>

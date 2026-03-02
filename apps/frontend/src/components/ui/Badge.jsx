@@ -1,15 +1,15 @@
 const styles = {
-  ok: "border-emerald-700 bg-emerald-900/30 text-emerald-200",
-  warn: "border-amber-700 bg-amber-900/30 text-amber-200",
-  err: "border-red-700 bg-red-900/30 text-red-200",
-  neutral: "border-slate-700 bg-slate-900/30 text-slate-200",
+  ok: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  warn: "border-orange-200 bg-orange-50 text-orange-700",
+  err: "border-red-200 bg-red-50 text-red-700",
+  neutral: "border-slate-200 bg-slate-100 text-slate-700",
 };
 
 export default function Badge({ tone = "neutral", className = "", children }) {
   return (
     <span
       className={[
-        "inline-flex items-center rounded-full border px-2 py-0.5 text-xs",
+        "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider",
         styles[tone] || styles.neutral,
         className,
       ].join(" ")}

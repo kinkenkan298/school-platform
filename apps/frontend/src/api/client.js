@@ -1,4 +1,4 @@
-const DEFAULT_BASE = "http://localhost:3001/api/v1";
+const DEFAULT_BASE = "/api/v1";
 const LS_KEY = "school.apiBaseUrl";
 
 export function getApiBaseUrl() {
@@ -6,7 +6,7 @@ export function getApiBaseUrl() {
   const env = import.meta?.env?.VITE_API_BASE_URL;
   if (env) return env;
 
-  // 2) localStorage
+  // 2) localStorage override (dari halaman environments)
   try {
     const v = localStorage.getItem(LS_KEY);
     if (v) return v;
@@ -14,7 +14,7 @@ export function getApiBaseUrl() {
     // ignore
   }
 
-  // 3) default
+  // 3) default (proxy)
   return DEFAULT_BASE;
 }
 
@@ -36,19 +36,38 @@ function toQuery(params) {
   return qs ? `?${qs}` : "";
 }
 
+function humanFetchError(url, base) {
+  return [
+    "Gagal menghubungi API.",
+    `URL: ${url}`,
+    `Base URL: ${base}`,
+    "",
+    "Kalau kamu pakai root dev (turbo):",
+    "1) Pastikan backend benar-benar jalan (tidak crash loop).",
+    "2) Pastikan proxy Vite aktif (vite.config.js) dan backend listen di target proxy (default 3001).",
+  ].join("\n");
+}
+
 export async function apiFetch(path, { method = "GET", params, body, headers, signal } = {}) {
   const base = getApiBaseUrl();
   const url = `${base}${path}${toQuery(params)}`;
 
-  const res = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(headers || {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-    signal,
-  });
+  let res;
+  try {
+    res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(headers || {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      signal,
+    });
+  } catch (e) {
+    const err = new Error(humanFetchError(url, base));
+    err.cause = e;
+    throw err;
+  }
 
   const contentType = res.headers.get("content-type") || "";
   const payload = contentType.includes("application/json") ? await res.json() : null;
@@ -57,8 +76,9 @@ export async function apiFetch(path, { method = "GET", params, body, headers, si
     const err = new Error(payload?.message || res.statusText || "Request gagal");
     err.status = res.status;
     err.payload = payload;
+    err.url = url;
     throw err;
   }
 
-  return payload; // { success, message, data }
+  return payload;
 }

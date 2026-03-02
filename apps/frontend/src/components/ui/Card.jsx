@@ -2,7 +2,7 @@ export default function Card({ className = "", children }) {
   return (
     <div
       className={[
-        "rounded-xl border border-slate-800 bg-slate-900/40 p-4",
+        "rounded-xl border border-slate-200 bg-white p-5 shadow-sm",
         className,
       ].join(" ")}
     >
