@@ -1,4 +1,5 @@
 # Dokumentasi Backend Finance MVP
+
 > Aplikasi SaaS Keuangan Sekolah  
 > Stack: TypeScript · Express · PostgreSQL · Drizzle ORM
 
@@ -98,8 +99,6 @@ school-platform-bruno/                     # Bruno API collection
 └── bruno.json
 ```
 
-> **Catatan:** Ditemukan typo pada nama file `neraca,service.ts` (menggunakan koma). Seharusnya `neraca.service.ts` menggunakan titik. Perlu di-rename agar TypeScript bisa mengenali file tersebut.
-
 ### Layer Arsitektur
 
 Setiap modul mengikuti pola 3 layer yang konsisten:
@@ -121,6 +120,7 @@ Request → Routes → Controller → Service → Database
 ### Format Response Standar
 
 **Berhasil (data tunggal atau list):**
+
 ```json
 {
   "success": true,
@@ -130,6 +130,7 @@ Request → Routes → Controller → Service → Database
 ```
 
 **Berhasil dibuat (HTTP 201):**
+
 ```json
 {
   "success": true,
@@ -139,6 +140,7 @@ Request → Routes → Controller → Service → Database
 ```
 
 **Gagal:**
+
 ```json
 {
   "success": false,
@@ -152,12 +154,12 @@ Request → Routes → Controller → Service → Database
 
 ### Kode Error
 
-| Kode HTTP | Keterangan |
-|---|---|
-| `400 Bad Request` | Input tidak valid atau melanggar business rule |
-| `404 Not Found` | Data yang dicari tidak ditemukan |
-| `409 Conflict` | Data duplikat (misal kode akun sudah ada) |
-| `500 Internal Server Error` | Error tidak terduga di server |
+| Kode HTTP                   | Keterangan                                     |
+| --------------------------- | ---------------------------------------------- |
+| `400 Bad Request`           | Input tidak valid atau melanggar business rule |
+| `404 Not Found`             | Data yang dicari tidak ditemukan               |
+| `409 Conflict`              | Data duplikat (misal kode akun sudah ada)      |
+| `500 Internal Server Error` | Error tidak terduga di server                  |
 
 ---
 
@@ -173,54 +175,54 @@ CREATE TYPE status_jurnal AS ENUM ('DRAF', 'DIPOSTING', 'DIBATALKAN');
 
 ### Tabel `akun` (Chart of Accounts)
 
-| Kolom | Tipe | Keterangan |
-|---|---|---|
-| `id` | UUID | Primary key |
-| `kode` | VARCHAR(20) | Kode akun, unik (contoh: `1101`) |
-| `nama` | VARCHAR(100) | Nama akun |
-| `tipe` | ENUM tipe_akun | Tipe akun |
-| `saldo_normal` | ENUM saldo_normal | Arah saldo normal akun |
-| `induk_id` | UUID | Self-reference ke akun induk (nullable) |
-| `adalah_induk` | BOOLEAN | Akun induk tidak bisa dipakai di jurnal |
-| `aktif` | BOOLEAN | Status aktif akun |
-| `dibuat_pada` | TIMESTAMP | Waktu dibuat |
-| `diperbarui_pada` | TIMESTAMP | Waktu terakhir diperbarui |
+| Kolom             | Tipe              | Keterangan                              |
+| ----------------- | ----------------- | --------------------------------------- |
+| `id`              | UUID              | Primary key                             |
+| `kode`            | VARCHAR(20)       | Kode akun, unik (contoh: `1101`)        |
+| `nama`            | VARCHAR(100)      | Nama akun                               |
+| `tipe`            | ENUM tipe_akun    | Tipe akun                               |
+| `saldo_normal`    | ENUM saldo_normal | Arah saldo normal akun                  |
+| `induk_id`        | UUID              | Self-reference ke akun induk (nullable) |
+| `adalah_induk`    | BOOLEAN           | Akun induk tidak bisa dipakai di jurnal |
+| `aktif`           | BOOLEAN           | Status aktif akun                       |
+| `dibuat_pada`     | TIMESTAMP         | Waktu dibuat                            |
+| `diperbarui_pada` | TIMESTAMP         | Waktu terakhir diperbarui               |
 
 ### Tabel `periode_fiskal`
 
-| Kolom | Tipe | Keterangan |
-|---|---|---|
-| `id` | UUID | Primary key |
-| `bulan` | INTEGER | Bulan (1–12) |
-| `tahun` | INTEGER | Tahun (2000–2100) |
-| `sudah_ditutup` | BOOLEAN | Periode yang ditutup tidak bisa dijurnal |
-| `ditutup_pada` | TIMESTAMP | Waktu periode ditutup |
+| Kolom           | Tipe      | Keterangan                               |
+| --------------- | --------- | ---------------------------------------- |
+| `id`            | UUID      | Primary key                              |
+| `bulan`         | INTEGER   | Bulan (1–12)                             |
+| `tahun`         | INTEGER   | Tahun (2000–2100)                        |
+| `sudah_ditutup` | BOOLEAN   | Periode yang ditutup tidak bisa dijurnal |
+| `ditutup_pada`  | TIMESTAMP | Waktu periode ditutup                    |
 
 ### Tabel `jurnal`
 
-| Kolom | Tipe | Keterangan |
-|---|---|---|
-| `id` | UUID | Primary key |
-| `nomor` | VARCHAR(30) | Nomor jurnal otomatis (contoh: `JRN-2025-001`) |
-| `tanggal` | DATE | Tanggal transaksi |
-| `periode_id` | UUID | FK ke `periode_fiskal` |
-| `keterangan` | TEXT | Deskripsi transaksi |
-| `referensi` | VARCHAR(100) | Nomor referensi dokumen (nomor faktur, dll) |
-| `status` | ENUM status_jurnal | Status jurnal |
-| `alasan_batal` | TEXT | Wajib diisi saat jurnal dibatalkan |
-| `dibuat_pada` | TIMESTAMP | Waktu dibuat |
-| `diperbarui_pada` | TIMESTAMP | Waktu terakhir diperbarui |
+| Kolom             | Tipe               | Keterangan                                     |
+| ----------------- | ------------------ | ---------------------------------------------- |
+| `id`              | UUID               | Primary key                                    |
+| `nomor`           | VARCHAR(30)        | Nomor jurnal otomatis (contoh: `JRN-2025-001`) |
+| `tanggal`         | DATE               | Tanggal transaksi                              |
+| `periode_id`      | UUID               | FK ke `periode_fiskal`                         |
+| `keterangan`      | TEXT               | Deskripsi transaksi                            |
+| `referensi`       | VARCHAR(100)       | Nomor referensi dokumen (nomor faktur, dll)    |
+| `status`          | ENUM status_jurnal | Status jurnal                                  |
+| `alasan_batal`    | TEXT               | Wajib diisi saat jurnal dibatalkan             |
+| `dibuat_pada`     | TIMESTAMP          | Waktu dibuat                                   |
+| `diperbarui_pada` | TIMESTAMP          | Waktu terakhir diperbarui                      |
 
 ### Tabel `jurnal_baris`
 
-| Kolom | Tipe | Keterangan |
-|---|---|---|
-| `id` | UUID | Primary key |
-| `jurnal_id` | UUID | FK ke `jurnal` |
-| `akun_id` | UUID | FK ke `akun` |
-| `debit` | NUMERIC(20,2) | Nilai debit |
-| `kredit` | NUMERIC(20,2) | Nilai kredit |
-| `keterangan` | TEXT | Keterangan baris (opsional) |
+| Kolom        | Tipe          | Keterangan                  |
+| ------------ | ------------- | --------------------------- |
+| `id`         | UUID          | Primary key                 |
+| `jurnal_id`  | UUID          | FK ke `jurnal`              |
+| `akun_id`    | UUID          | FK ke `akun`                |
+| `debit`      | NUMERIC(20,2) | Nilai debit                 |
+| `kredit`     | NUMERIC(20,2) | Nilai kredit                |
+| `keterangan` | TEXT          | Keterangan baris (opsional) |
 
 ### Relasi Antar Tabel
 
@@ -284,58 +286,58 @@ akun ──(induk_id, self-reference)──► akun
 
 ### Akun
 
-| Rule | Keterangan |
-|---|---|
-| Kode akun harus unik | Tidak boleh ada dua akun dengan kode yang sama |
-| Akun induk tidak bisa dipakai di jurnal | Hanya akun dengan `adalahInduk: false` yang bisa menjadi baris jurnal |
-| Akun tidak aktif tidak bisa dipakai di jurnal | Akun dengan `aktif: false` tidak bisa masuk ke baris jurnal |
-| Akun tidak bisa dihapus jika punya anak | Harus hapus semua akun turunan terlebih dahulu |
-| Akun tidak bisa dihapus jika sudah dipakai di jurnal | Akun yang sudah pernah masuk ke `jurnal_baris` tidak bisa dihapus |
-| Akun tidak bisa menjadi induk dari dirinya sendiri | `indukId` tidak boleh sama dengan `id` akun itu sendiri |
-| `indukId` harus menunjuk ke akun yang `adalahInduk: true` | Tidak bisa menjadikan akun detail sebagai induk |
+| Rule                                                      | Keterangan                                                            |
+| --------------------------------------------------------- | --------------------------------------------------------------------- |
+| Kode akun harus unik                                      | Tidak boleh ada dua akun dengan kode yang sama                        |
+| Akun induk tidak bisa dipakai di jurnal                   | Hanya akun dengan `adalahInduk: false` yang bisa menjadi baris jurnal |
+| Akun tidak aktif tidak bisa dipakai di jurnal             | Akun dengan `aktif: false` tidak bisa masuk ke baris jurnal           |
+| Akun tidak bisa dihapus jika punya anak                   | Harus hapus semua akun turunan terlebih dahulu                        |
+| Akun tidak bisa dihapus jika sudah dipakai di jurnal      | Akun yang sudah pernah masuk ke `jurnal_baris` tidak bisa dihapus     |
+| Akun tidak bisa menjadi induk dari dirinya sendiri        | `indukId` tidak boleh sama dengan `id` akun itu sendiri               |
+| `indukId` harus menunjuk ke akun yang `adalahInduk: true` | Tidak bisa menjadikan akun detail sebagai induk                       |
 
 ### Saldo Normal Akun
 
-| Tipe Akun | Saldo Normal | Bertambah saat | Berkurang saat |
-|---|---|---|---|
-| ASET | DEBIT | Debit | Kredit |
-| BEBAN | DEBIT | Debit | Kredit |
-| LIABILITAS | KREDIT | Kredit | Debit |
-| EKUITAS | KREDIT | Kredit | Debit |
-| PENDAPATAN | KREDIT | Kredit | Debit |
+| Tipe Akun  | Saldo Normal | Bertambah saat | Berkurang saat |
+| ---------- | ------------ | -------------- | -------------- |
+| ASET       | DEBIT        | Debit          | Kredit         |
+| BEBAN      | DEBIT        | Debit          | Kredit         |
+| LIABILITAS | KREDIT       | Kredit         | Debit          |
+| EKUITAS    | KREDIT       | Kredit         | Debit          |
+| PENDAPATAN | KREDIT       | Kredit         | Debit          |
 
 ### Periode Fiskal
 
-| Rule | Keterangan |
-|---|---|
-| Periode bulan/tahun harus unik | Tidak boleh ada dua periode dengan bulan dan tahun yang sama |
-| Periode yang sudah ditutup tidak bisa dibuka kembali | `sudahDitutup` bersifat permanen |
+| Rule                                                    | Keterangan                                                             |
+| ------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Periode bulan/tahun harus unik                          | Tidak boleh ada dua periode dengan bulan dan tahun yang sama           |
+| Periode yang sudah ditutup tidak bisa dibuka kembali    | `sudahDitutup` bersifat permanen                                       |
 | Tidak bisa posting jurnal ke periode yang sudah ditutup | Validasi dilakukan saat `POST /jurnal` dan `PATCH /jurnal/:id/posting` |
 
 ### Jurnal
 
-| Rule | Keterangan |
-|---|---|
-| Total debit harus sama dengan total kredit | Prinsip double-entry bookkeeping |
-| Jurnal minimal memiliki 2 baris | Tidak bisa jurnal dengan hanya 1 baris |
-| Setiap baris wajib memiliki nilai debit atau kredit | Tidak boleh keduanya 0 |
-| Setiap baris tidak boleh memiliki debit dan kredit sekaligus | Pilih salah satu per baris |
-| Jurnal DRAF bisa diedit dan dihapus | Hanya status DRAF yang bisa dimodifikasi |
-| Jurnal DIPOSTING tidak bisa diedit | Hanya bisa dibatalkan dengan `PATCH /:id/batal` |
-| Jurnal DIBATALKAN tidak bisa diposting ulang | Status DIBATALKAN bersifat final |
-| Pembatalan wajib menyertakan alasan | Field `alasanBatal` wajib diisi |
-| Nomor jurnal digenerate otomatis | Format: `JRN-{TAHUN}-{URUTAN}`, contoh: `JRN-2025-001` |
+| Rule                                                         | Keterangan                                             |
+| ------------------------------------------------------------ | ------------------------------------------------------ |
+| Total debit harus sama dengan total kredit                   | Prinsip double-entry bookkeeping                       |
+| Jurnal minimal memiliki 2 baris                              | Tidak bisa jurnal dengan hanya 1 baris                 |
+| Setiap baris wajib memiliki nilai debit atau kredit          | Tidak boleh keduanya 0                                 |
+| Setiap baris tidak boleh memiliki debit dan kredit sekaligus | Pilih salah satu per baris                             |
+| Jurnal DRAF bisa diedit dan dihapus                          | Hanya status DRAF yang bisa dimodifikasi               |
+| Jurnal DIPOSTING tidak bisa diedit                           | Hanya bisa dibatalkan dengan `PATCH /:id/batal`        |
+| Jurnal DIBATALKAN tidak bisa diposting ulang                 | Status DIBATALKAN bersifat final                       |
+| Pembatalan wajib menyertakan alasan                          | Field `alasanBatal` wajib diisi                        |
+| Nomor jurnal digenerate otomatis                             | Format: `JRN-{TAHUN}-{URUTAN}`, contoh: `JRN-2025-001` |
 
 ### Laporan
 
-| Rule | Keterangan |
-|---|---|
-| Semua laporan hanya menghitung jurnal DIPOSTING | Jurnal DRAF dan DIBATALKAN tidak ikut dihitung |
-| Buku besar hanya untuk akun detail | Akun induk tidak bisa ditampilkan di buku besar |
-| Saldo awal buku besar dihitung akumulatif | Semua transaksi sebelum tanggal `dari` ikut dihitung |
-| Neraca menggunakan satu titik waktu | Query parameter hanya `sampai`, bukan range |
-| Laba rugi berjalan masuk ke ekuitas di neraca | Agar persamaan Aset = Liabilitas + Ekuitas tetap seimbang |
-| Arus kas diidentifikasi berdasarkan kode akun | Akun kas: `1101`, `1102`, `1103`, `1104` |
+| Rule                                            | Keterangan                                                |
+| ----------------------------------------------- | --------------------------------------------------------- |
+| Semua laporan hanya menghitung jurnal DIPOSTING | Jurnal DRAF dan DIBATALKAN tidak ikut dihitung            |
+| Buku besar hanya untuk akun detail              | Akun induk tidak bisa ditampilkan di buku besar           |
+| Saldo awal buku besar dihitung akumulatif       | Semua transaksi sebelum tanggal `dari` ikut dihitung      |
+| Neraca menggunakan satu titik waktu             | Query parameter hanya `sampai`, bukan range               |
+| Laba rugi berjalan masuk ke ekuitas di neraca   | Agar persamaan Aset = Liabilitas + Ekuitas tetap seimbang |
+| Arus kas diidentifikasi berdasarkan kode akun   | Akun kas: `1101`, `1102`, `1103`, `1104`                  |
 
 ---
 
@@ -351,13 +353,14 @@ akun ──(induk_id, self-reference)──► akun
 
 **Query Params (opsional):**
 
-| Param | Tipe | Contoh |
-|---|---|---|
-| `tipe` | string | `ASET` \| `LIABILITAS` \| `EKUITAS` \| `PENDAPATAN` \| `BEBAN` |
-| `aktif` | boolean | `true` \| `false` |
-| `indukId` | UUID | `uuid` |
+| Param     | Tipe    | Contoh                                                         |
+| --------- | ------- | -------------------------------------------------------------- |
+| `tipe`    | string  | `ASET` \| `LIABILITAS` \| `EKUITAS` \| `PENDAPATAN` \| `BEBAN` |
+| `aktif`   | boolean | `true` \| `false`                                              |
+| `indukId` | UUID    | `uuid`                                                         |
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -384,6 +387,7 @@ akun ──(induk_id, self-reference)──► akun
 #### `GET /akun/:id` — Ambil Detail Akun
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -402,6 +406,7 @@ akun ──(induk_id, self-reference)──► akun
 ```
 
 **Response `404`:**
+
 ```json
 {
   "success": false,
@@ -414,6 +419,7 @@ akun ──(induk_id, self-reference)──► akun
 #### `POST /akun` — Buat Akun Baru
 
 **Request Body:**
+
 ```json
 {
   "kode": "1101",
@@ -427,6 +433,7 @@ akun ──(induk_id, self-reference)──► akun
 ```
 
 **Response `201`:**
+
 ```json
 {
   "success": true,
@@ -436,6 +443,7 @@ akun ──(induk_id, self-reference)──► akun
 ```
 
 **Response `409` — kode duplikat:**
+
 ```json
 {
   "success": false,
@@ -444,6 +452,7 @@ akun ──(induk_id, self-reference)──► akun
 ```
 
 **Response `400` — induk bukan akun induk:**
+
 ```json
 {
   "success": false,
@@ -458,6 +467,7 @@ akun ──(induk_id, self-reference)──► akun
 **Request Body:** sama seperti `POST /akun`, semua field opsional.
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -471,6 +481,7 @@ akun ──(induk_id, self-reference)──► akun
 #### `DELETE /akun/:id` — Hapus Akun
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -480,6 +491,7 @@ akun ──(induk_id, self-reference)──► akun
 ```
 
 **Response `400` — masih punya akun anak:**
+
 ```json
 {
   "success": false,
@@ -488,6 +500,7 @@ akun ──(induk_id, self-reference)──► akun
 ```
 
 **Response `400` — sudah dipakai di jurnal:**
+
 ```json
 {
   "success": false,
@@ -502,6 +515,7 @@ akun ──(induk_id, self-reference)──► akun
 #### `GET /periode` — Ambil Semua Periode
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -523,6 +537,7 @@ akun ──(induk_id, self-reference)──► akun
 #### `GET /periode/:id` — Ambil Detail Periode
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -542,6 +557,7 @@ akun ──(induk_id, self-reference)──► akun
 #### `POST /periode` — Buat Periode Baru
 
 **Request Body:**
+
 ```json
 {
   "bulan": 1,
@@ -550,6 +566,7 @@ akun ──(induk_id, self-reference)──► akun
 ```
 
 **Response `201`:**
+
 ```json
 {
   "success": true,
@@ -559,6 +576,7 @@ akun ──(induk_id, self-reference)──► akun
 ```
 
 **Response `409` — periode duplikat:**
+
 ```json
 {
   "success": false,
@@ -573,6 +591,7 @@ akun ──(induk_id, self-reference)──► akun
 Tidak memerlukan request body.
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -588,6 +607,7 @@ Tidak memerlukan request body.
 ```
 
 **Response `400` — sudah ditutup:**
+
 ```json
 {
   "success": false,
@@ -603,14 +623,15 @@ Tidak memerlukan request body.
 
 **Query Params (opsional):**
 
-| Param | Tipe | Contoh |
-|---|---|---|
-| `status` | string | `DRAF` \| `DIPOSTING` \| `DIBATALKAN` |
-| `periodeId` | UUID | `uuid` |
-| `dari` | date | `2025-01-01` |
-| `sampai` | date | `2025-01-31` |
+| Param       | Tipe   | Contoh                                |
+| ----------- | ------ | ------------------------------------- |
+| `status`    | string | `DRAF` \| `DIPOSTING` \| `DIBATALKAN` |
+| `periodeId` | UUID   | `uuid`                                |
+| `dari`      | date   | `2025-01-01`                          |
+| `sampai`    | date   | `2025-01-31`                          |
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -635,6 +656,7 @@ Tidak memerlukan request body.
 #### `GET /jurnal/:id` — Ambil Detail Jurnal
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -673,6 +695,7 @@ Tidak memerlukan request body.
 #### `POST /jurnal` — Buat Jurnal Baru
 
 **Request Body:**
+
 ```json
 {
   "tanggal": "2025-01-02",
@@ -697,6 +720,7 @@ Tidak memerlukan request body.
 ```
 
 **Response `201`:**
+
 ```json
 {
   "success": true,
@@ -706,6 +730,7 @@ Tidak memerlukan request body.
 ```
 
 **Response `400` — debit ≠ kredit:**
+
 ```json
 {
   "success": false,
@@ -717,6 +742,7 @@ Tidak memerlukan request body.
 ```
 
 **Response `400` — pakai akun induk:**
+
 ```json
 {
   "success": false,
@@ -731,6 +757,7 @@ Tidak memerlukan request body.
 Hanya bisa dilakukan pada jurnal berstatus **DRAF**. Request body sama seperti `POST /jurnal`.
 
 **Response `400` — sudah diposting:**
+
 ```json
 {
   "success": false,
@@ -745,6 +772,7 @@ Hanya bisa dilakukan pada jurnal berstatus **DRAF**. Request body sama seperti `
 Tidak memerlukan request body. Mengubah status dari `DRAF` menjadi `DIPOSTING`.
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -762,6 +790,7 @@ Tidak memerlukan request body. Mengubah status dari `DRAF` menjadi `DIPOSTING`.
 #### `PATCH /jurnal/:id/batal` — Batalkan Jurnal
 
 **Request Body:**
+
 ```json
 {
   "alasanBatal": "Transaksi salah input"
@@ -769,6 +798,7 @@ Tidak memerlukan request body. Mengubah status dari `DRAF` menjadi `DIPOSTING`.
 ```
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -782,6 +812,7 @@ Tidak memerlukan request body. Mengubah status dari `DRAF` menjadi `DIPOSTING`.
 ```
 
 **Response `400` — sudah dibatalkan:**
+
 ```json
 {
   "success": false,
@@ -796,6 +827,7 @@ Tidak memerlukan request body. Mengubah status dari `DRAF` menjadi `DIPOSTING`.
 Hanya bisa dilakukan pada jurnal berstatus **DRAF**.
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -812,13 +844,14 @@ Hanya bisa dilakukan pada jurnal berstatus **DRAF**.
 
 **Query Params (wajib):**
 
-| Param | Tipe | Keterangan |
-|---|---|---|
+| Param    | Tipe | Keterangan                                     |
+| -------- | ---- | ---------------------------------------------- |
 | `akunId` | UUID | ID akun yang ingin dilihat (harus akun detail) |
-| `dari` | date | Tanggal awal periode |
-| `sampai` | date | Tanggal akhir periode |
+| `dari`   | date | Tanggal awal periode                           |
+| `sampai` | date | Tanggal akhir periode                          |
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -869,12 +902,13 @@ Hanya bisa dilakukan pada jurnal berstatus **DRAF**.
 
 **Query Params (wajib):**
 
-| Param | Tipe | Keterangan |
-|---|---|---|
-| `dari` | date | Tanggal awal periode |
+| Param    | Tipe | Keterangan            |
+| -------- | ---- | --------------------- |
+| `dari`   | date | Tanggal awal periode  |
 | `sampai` | date | Tanggal akhir periode |
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -911,11 +945,12 @@ Hanya bisa dilakukan pada jurnal berstatus **DRAF**.
 
 **Query Params (wajib):**
 
-| Param | Tipe | Keterangan |
-|---|---|---|
+| Param    | Tipe | Keterangan                                              |
+| -------- | ---- | ------------------------------------------------------- |
 | `sampai` | date | Tanggal neraca dihitung (akumulatif hingga tanggal ini) |
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -953,12 +988,13 @@ Hanya bisa dilakukan pada jurnal berstatus **DRAF**.
 
 **Query Params (wajib):**
 
-| Param | Tipe | Keterangan |
-|---|---|---|
-| `dari` | date | Tanggal awal periode |
+| Param    | Tipe | Keterangan            |
+| -------- | ---- | --------------------- |
+| `dari`   | date | Tanggal awal periode  |
 | `sampai` | date | Tanggal akhir periode |
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
