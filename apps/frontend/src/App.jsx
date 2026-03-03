@@ -1,35 +1,52 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import AppShell from "./components/layout/AppShell.jsx";
+import { useHashRouter } from "./router/useHashRouter.js";
 
-function App() {
-  const [count, setCount] = useState(0)
+import DashboardPage from "./pages/DashboardPage.jsx";
+import AkunPage from "./pages/akun/AkunPage.jsx";
+import PeriodePage from "./pages/periode/PeriodePage.jsx";
+import JurnalPage from "./pages/jurnal/JurnalPage.jsx";
+import LaporanPage from "./pages/laporan/LaporanPage.jsx";
+import EnvironmentsPage from "./pages/environments/EnvironmentsPage.jsx";
 
+function NotFound() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+      <p className="text-sm text-slate-300">Halaman tidak ditemukan.</p>
+      <p className="mt-1 text-xs text-slate-500">
+        Coba pilih menu di sidebar.
       </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default function App() {
+  const { path } = useHashRouter();
+
+  let title = "Dashboard";
+  let page = <DashboardPage />;
+
+  if (path === "/" || path === "") {
+    title = "Dashboard";
+    page = <DashboardPage />;
+  } else if (path === "/akun") {
+    title = "akun";
+    page = <AkunPage />;
+  } else if (path === "/periode") {
+    title = "periode";
+    page = <PeriodePage />;
+  } else if (path === "/jurnal") {
+    title = "jurnal";
+    page = <JurnalPage />;
+  } else if (path === "/laporan") {
+    title = "laporan";
+    page = <LaporanPage />;
+  } else if (path === "/environments") {
+    title = "environments";
+    page = <EnvironmentsPage />;
+  } else {
+    title = "Not Found";
+    page = <NotFound />;
+  }
+
+  return <AppShell title={title}>{page}</AppShell>;
+}
