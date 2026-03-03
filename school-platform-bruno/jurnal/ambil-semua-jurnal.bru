@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/jurnal
+  url: {{baseUrl}}/jurnal?status=DRAF
   body: none
   auth: none
 }
 
 params:query {
-  ~status: DRAF
+  status: DRAF
   ~periodeId: 
   ~dari: 2025-01-01
   ~sampai: 2025-12-31
